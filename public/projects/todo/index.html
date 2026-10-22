@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" /><meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>TaskFlow — Smart Todo</title>
+<style>
+  :root{--bg:#0d1220;--card:#151c30;--line:rgba(255,255,255,.09);--text:#eef0f6;--muted:#9aa5bd;--gold:#34d399;--hi:#f87171;--md:#fbbf24;--lo:#60a5fa}
+  *{box-sizing:border-box}body{margin:0;min-height:100vh;font-family:system-ui,-apple-system,Segoe UI,sans-serif;background:radial-gradient(700px 350px at 90% -10%,rgba(52,211,153,.15),transparent),var(--bg);color:var(--text);display:grid;place-items:start center;padding:2rem 1rem}
+  .app{width:min(640px,100%)}h1{margin:0 0 .2rem;font-size:1.9rem}p.sub{color:var(--muted);margin:0 0 1.2rem}
+  .bar{height:8px;background:var(--card);border-radius:99px;overflow:hidden;margin:.4rem 0 1.2rem}.bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#34d399,#60a5fa);transition:width .35s}
+  form{display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:1rem}input,select,button{font:inherit;color:inherit;border-radius:12px;border:1px solid var(--line);background:var(--card);padding:.7rem .9rem}
+  input[type=text]{flex:1 1 200px}button{cursor:pointer}button.add{background:var(--gold);color:#04130c;font-weight:700;border:0}
+  .filters{display:flex;gap:.4rem;margin-bottom:1rem}.filters button{border-radius:99px;padding:.35rem .9rem;font-size:.85rem;color:var(--muted)}.filters button.on{color:#04130c;background:var(--gold);border:0;font-weight:700}
+  ul{list-style:none;margin:0;padding:0;display:grid;gap:.6rem}li{display:flex;align-items:center;gap:.7rem;background:var(--card);border:1px solid var(--line);border-left:4px solid var(--p);padding:.75rem .9rem;border-radius:14px}
+  li.done span.t{text-decoration:line-through;color:var(--muted)}li span.t{flex:1;word-break:break-word}li small{color:var(--muted)}li .x{border:0;background:none;color:var(--muted);padding:.2rem .5rem}li .x:hover{color:var(--hi)}
+  input[type=checkbox]{width:20px;height:20px;accent-color:#34d399}.foot{display:flex;justify-content:space-between;color:var(--muted);font-size:.88rem;margin-top:1rem}.empty{text-align:center;color:var(--muted);padding:2rem}
+</style>
+</head>
+<body>
+<div class="app">
+  <h1>✅ TaskFlow</h1><p class="sub" id="date"></p>
+  <div class="bar"><i id="bar"></i></div>
+  <form id="f"><input type="text" id="t" placeholder="What needs doing?" maxlength="120" required />
+    <select id="p"><option value="high">High</option><option value="med" selected>Medium</option><option value="low">Low</option></select>
+    <button class="add">Add</button></form>
+  <div class="filters" id="filters"></div>
+  <ul id="list"></ul>
+  <div class="foot"><span id="count"></span><button id="clear" style="padding:.3rem .8rem">Clear completed</button></div>
+</div>
+<script>
+  const COL={high:'var(--hi)',med:'var(--md)',low:'var(--lo)'};
+  let store={};try{localStorage.setItem('x','1');localStorage.removeItem('x');store=localStorage}catch(e){store={getItem:k=>store[k]??null,setItem:(k,v)=>store[k]=v}}
+  let todos=JSON.parse(store.getItem('taskflow')||'null')||[{id:1,text:'Review pull requests',p:'high',done:false},{id:2,text:'Update sprint board',p:'med',done:true},{id:3,text:'Write release notes',p:'low',done:false}];
+  let filter='all';const $=id=>document.getElementById(id);
+  $('date').textContent=new Date().toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'long'});
+  const save=()=>store.setItem('taskflow',JSON.stringify(todos));
+  function render(){
+    const shown=todos.filter(t=>filter==='all'||(filter==='done'?t.done:!t.done));
+    $('list').innerHTML=shown.length?'':'<div class="empty">🎉 Nothing here — enjoy the calm.</div>';
+    shown.forEach(t=>{const li=document.createElement('li');li.style.setProperty('--p',COL[t.p]);if(t.done)li.className='done';
+      li.innerHTML=`<input type="checkbox" ${t.done?'checked':''}><span class="t"></span><small>${t.p}</small><button class="x" title="Delete">✕</button>`;
+      li.querySelector('.t').textContent=t.text;li.querySelector('.t').ondblclick=()=>{const n=prompt('Edit task',t.text);if(n&&n.trim()){t.text=n.trim();save();render()}};
+      li.querySelector('input').onchange=()=>{t.done=!t.done;save();render()};li.querySelector('.x').onclick=()=>{todos=todos.filter(x=>x.id!==t.id);save();render()};$('list').appendChild(li)});
+    const d=todos.filter(t=>t.done).length;$('bar').style.width=todos.length?d/todos.length*100+'%':'0';$('count').textContent=`${todos.length-d} left · ${d} done · double-click to edit`;
+    $('filters').innerHTML='';[['all','All'],['active','Active'],['done','Done']].forEach(([k,l])=>{const b=document.createElement('button');b.textContent=l;if(filter===k)b.className='on';b.onclick=()=>{filter=k;render()};$('filters').appendChild(b)});
+  }
+  $('f').onsubmit=e=>{e.preventDefault();const v=$('t').value.trim();if(!v)return;todos.unshift({id:Date.now(),text:v,p:$('p').value,done:false});$('t').value='';save();render()};
+  $('clear').onclick=()=>{todos=todos.filter(t=>!t.done);save();render()};render();
+</script>
+</body></html>

@@ -1,0 +1,85 @@
+import bcrypt from 'bcryptjs';
+
+const now = Date.now();
+const daysAgo = (d) => new Date(now - d * 86400000).toISOString();
+const due = (d) => { const x = new Date(now + d * 86400000); return `${x.getFullYear()}-${String(x.getMonth() + 1).padStart(2, '0')}-${String(x.getDate()).padStart(2, '0')}`; };
+
+export const seedUsers = () => [
+  {
+    id: 'u1',
+    name: 'Aarav Sharma',
+    email: 'aarav.sharma@devdirectory.in',
+    role: 'Engineering Manager',
+    passwordHash: bcrypt.hashSync('devdir@123', 10),
+  },
+  {
+    id: 'u2',
+    name: 'Meera Joshi',
+    email: 'meera.joshi@devdirectory.in',
+    role: 'Staff Engineer',
+    passwordHash: bcrypt.hashSync('devdir@123', 10),
+  },
+];
+
+export const seedProjects = () => [
+  {
+    id: 'todo-app',
+    title: 'TaskFlow — Smart Todo',
+    description:
+      'A fast, offline-first todo manager with priorities, filters, inline editing and progress tracking. Built with vanilla JavaScript and persisted in the browser.',
+    category: 'Productivity',
+    tags: ['JavaScript', 'LocalStorage', 'CSS'],
+    type: 'internal',
+    launchUrl: '/projects/todo/index.html',
+    repoUrl: '',
+    icon: '✅',
+    accent: '#34d399',
+    author: 'Rohan Mehta',
+    priority: 'Medium',
+    deadline: due(9),
+    featured: true,
+    views: 128,
+    likes: 24,
+    createdAt: daysAgo(21),
+  },
+  {
+    id: 'news-reader',
+    title: 'India Pulse — News Reader',
+    description:
+      'A clean news frontend that pulls stories from a REST API, supports search, category filters and a read-later list. Responsive from phone to desktop.',
+    category: 'News',
+    tags: ['REST API', 'Fetch', 'Responsive'],
+    type: 'internal',
+    launchUrl: '/projects/news-reader/index.html',
+    repoUrl: '',
+    icon: '📰',
+    accent: '#60a5fa',
+    author: 'Ananya Iyer',
+    priority: 'High',
+    deadline: due(3),
+    featured: true,
+    views: 203,
+    likes: 41,
+    createdAt: daysAgo(14),
+  },
+  {
+    id: 'devdirectory-core',
+    title: 'DevDirectory Portal',
+    description:
+      'The engineering portal itself: searchable developer directory, protected publishing flow and this very project store. React 18, Router v6, Axios.',
+    category: 'Full-Stack',
+    tags: ['React', 'Router v6', 'Axios', 'Express'],
+    type: 'internal',
+    launchUrl: '/',
+    repoUrl: '',
+    icon: '🧭',
+    accent: '#d4af6a',
+    author: 'Aarav Sharma',
+    priority: 'High',
+    deadline: due(21),
+    featured: true,
+    views: 310,
+    likes: 67,
+    createdAt: daysAgo(30),
+  },
+];

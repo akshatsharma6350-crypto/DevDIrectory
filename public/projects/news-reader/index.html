@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" /><meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>India Pulse — News Reader</title>
+<style>
+  :root{--bg:#0b1220;--card:#131c31;--line:rgba(255,255,255,.09);--text:#eef0f6;--muted:#9aa5bd;--acc:#60a5fa}
+  *{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,Segoe UI,sans-serif;background:radial-gradient(800px 380px at 10% -10%,rgba(96,165,250,.18),transparent),var(--bg);color:var(--text)}
+  header{position:sticky;top:0;background:rgba(11,18,32,.85);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);padding:.9rem 1.2rem;display:flex;gap:1rem;align-items:center;flex-wrap:wrap;z-index:5}
+  h1{margin:0;font-size:1.3rem}h1 span{color:var(--acc)}input{flex:1 1 220px;background:var(--card);border:1px solid var(--line);color:var(--text);border-radius:99px;padding:.6rem 1rem;font:inherit}
+  .cats{display:flex;gap:.4rem;padding:1rem 1.2rem 0;overflow-x:auto}.cats button{flex-shrink:0;background:var(--card);border:1px solid var(--line);color:var(--muted);border-radius:99px;padding:.35rem .9rem;font:inherit;cursor:pointer}.cats button.on{background:var(--acc);color:#04101f;border:0;font-weight:700}
+  main{padding:1.2rem;display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1rem}
+  article{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:1.1rem;display:flex;flex-direction:column;gap:.5rem}
+  article .tag{font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;color:var(--acc);font-weight:700}article h2{margin:0;font-size:1.05rem;line-height:1.3}
+  article p{margin:0;color:var(--muted);font-size:.9rem;flex:1}article .row{display:flex;justify-content:space-between;color:var(--muted);font-size:.8rem;align-items:center}
+  article button{background:none;border:1px solid var(--line);color:var(--text);border-radius:99px;padding:.3rem .8rem;cursor:pointer}article button.saved{background:var(--acc);color:#04101f;border:0}
+  .msg{grid-column:1/-1;text-align:center;color:var(--muted);padding:3rem 1rem}.msg button{margin-top:.8rem;background:var(--acc);color:#04101f;border:0;border-radius:99px;padding:.5rem 1.2rem;cursor:pointer;font:inherit}
+</style></head>
+<body>
+<header><h1>📰 India <span>Pulse</span></h1><input id="q" type="search" placeholder="Search headlines…" /></header>
+<div class="cats" id="cats"></div>
+<main id="feed"><div class="msg">Loading headlines…</div></main>
+<script>
+  const CATS=['Top','Technology','Business','Sports','Science','Culture','Education','Health','World','Opinion'];
+  const HEADS=["Startups across India raise record funding for climate technology", "New metro line cuts commute times for lakhs of daily travellers", "Students win national robotics championship with low-cost design", "Government unveils plan to expand rural broadband coverage", "Local farmers adopt drone-based crop monitoring this season", "Cricket board announces schedule for the upcoming domestic season", "Researchers develop affordable water purification filter", "Public libraries launch free digital learning programme", "Electric two-wheeler sales climb as charging network grows", "City council approves new green spaces in crowded neighbourhoods", "Hospital introduces AI-assisted screening for early diagnosis", "Textile exporters report strong demand from overseas buyers", "Engineers test solar-powered irrigation pilot in dry districts", "Film festival opens with showcase of independent regional cinema", "Universities partner with industry to expand internship placements", "Rail network trials faster signalling to reduce delays", "Small businesses move online with simple digital payment tools", "Space agency prepares instruments for next research mission", "Chefs revive traditional recipes in modern city restaurants", "Cybersecurity experts urge users to enable two-factor login", "Wildlife teams report rise in tiger population across reserves", "Open-source community releases tools for local language apps", "Health workers expand vaccination outreach in remote villages", "Artisans reach global customers through online marketplaces", "Marathon draws thousands of runners despite heavy morning rain", "Coding bootcamps help career switchers land developer roles", "Fresh data shows steady growth in services exports", "Architects design low-cost housing using recycled materials", "Weather department issues early guidance for the monsoon season", "Museum opens interactive gallery on ancient trade routes", "Banks roll out faster loan approvals for small enterprises", "Teachers adopt blended learning to support students at home", "Ports upgrade cargo handling to speed up shipments", "Music festival brings classical and electronic artists together", "Researchers map groundwater levels using satellite imagery", "Delivery startups test cleaner fleets in major cities", "Engineers share lessons from building scalable payment systems", "Volunteers clean riverbanks as part of year-long campaign", "Telecom operators extend high-speed coverage to smaller towns", "Young entrepreneurs showcase healthcare innovations at national summit"];
+  const SUMMARY=['Our reporters look at what this means for readers and communities.','Experts say the development could shape the months ahead.','Officials and local groups share their views on the next steps.','Here is a quick overview of the key facts and reactions.'];
+  let all=[],cat='All',saved=new Set();try{saved=new Set(JSON.parse(localStorage.getItem('bp_saved')||'[]'))}catch(e){}
+  const $=id=>document.getElementById(id);
+  function drawCats(){$('cats').innerHTML='';['All','Saved',...CATS.slice(0,6)].forEach(c=>{const b=document.createElement('button');b.textContent=c;if(c===cat)b.className='on';b.onclick=()=>{cat=c;drawCats();render()};$('cats').appendChild(b)})}
+  function render(){
+    const q=$('q').value.toLowerCase();
+    const list=all.filter(a=>(cat==='All'||(cat==='Saved'?saved.has(a.id):a.cat===cat))&&(!q||a.title.toLowerCase().includes(q)));
+    $('feed').innerHTML=list.length?'':'<div class="msg">No stories match.</div>';
+    list.forEach(a=>{const el=document.createElement('article');
+      el.innerHTML=`<span class="tag">${a.cat}</span><h2></h2><p></p><div class="row"><span>${a.mins} min read</span><button>${saved.has(a.id)?'★ Saved':'☆ Read later'}</button></div>`;
+      el.querySelector('h2').textContent=a.title;el.querySelector('p').textContent=a.body.split('\n')[0];
+      const btn=el.querySelector('button');if(saved.has(a.id))btn.className='saved';
+      btn.onclick=()=>{saved.has(a.id)?saved.delete(a.id):saved.add(a.id);try{localStorage.setItem('bp_saved',JSON.stringify([...saved]))}catch(e){}render()};$('feed').appendChild(el)});
+  }
+  async function load(){
+    $('feed').innerHTML='<div class="msg">Loading headlines…</div>';
+    try{const r=await fetch('https://jsonplaceholder.typicode.com/posts?_limit=40');if(!r.ok)throw new Error(r.status);
+      all=(await r.json()).map(p=>({id:p.id,title:HEADS[(p.id-1)%HEADS.length],body:SUMMARY[p.id%SUMMARY.length],cat:CATS[p.userId%CATS.length],mins:2+(p.id%5)}));render()}
+    catch(e){$('feed').innerHTML='<div class="msg">Could not load the news feed.<br><button id="r">Retry</button></div>';$('r').onclick=load}
+  }
+  $('q').oninput=render;drawCats();load();
+</script></body></html>
